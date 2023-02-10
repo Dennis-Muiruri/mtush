@@ -6,8 +6,8 @@ from .models import (Item, OrderItem, Order,
 								Refund, Category, Contact)
 
 class CategoryAdmin(admin.ModelAdmin):
-	list_display = ('name', 'slug')
-	prepopulated_fields = {'slug':('name',)}
+	list_display = ('name', 'id')
+	prepopulated_fields = {'id':('name',)}
 
 def make_refund_accepted(modeladmin, request, queryset):
 	queryset.update(refund_requested=False, refund_granted=True)
@@ -53,12 +53,29 @@ class ContactAdmin(admin.ModelAdmin):
 		"timestamp",
 	]
 
+class MpesapayAdmin(admin.ModelAdmin):
+	list_display = [
+		"user",
+		"amount",
+		"phone",
+		"cash",
+		"timestamp",
+	]
+
+class OrderItemAdmin(admin.ModelAdmin):
+	list_display = [
+		 "user",
+		 "item",
+		 "quantity",
+		 "timestamp"
+	]
+
 admin.site.register(Item)
-admin.site.register(OrderItem)
+admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Payment)
 admin.site.register(BillingAddress)
-admin.site.register(Mpesapay)
+admin.site.register(Mpesapay, MpesapayAdmin)
 admin.site.register(Coupon)
 admin.site.register(Refund)
 admin.site.register(Category, CategoryAdmin)

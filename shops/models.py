@@ -10,7 +10,7 @@ from django_countries.fields import CountryField
 
 class Category(models.Model):
 	name = models.CharField(max_length=250)
-	slug = models.SlugField(max_length=250)
+	
 
 	class Meta:
 		ordering = ('name',)
@@ -18,7 +18,7 @@ class Category(models.Model):
 		verbose_name_plural = 'categories'
 
 	def get_category_absolete_url(self):
-		return reverse('shops:list_category', args=[self.slug])
+		return reverse('shops:list_category', args=[self.id])
 
 	def __str__(self):
 		return self.name
@@ -36,6 +36,11 @@ LABEL_CHOICES = (
 	('D', 'danger')
 )
 
+ADDRESS_CHOICES = (
+	('B', 'Billing'),
+	('S', 'Shipping')
+)
+
 class Item(models.Model):
 	category = models.ForeignKey(Category, on_delete=models.CASCADE,
                     related_name="category_set")
@@ -47,7 +52,6 @@ class Item(models.Model):
 	color = models.CharField(max_length=100)
 	type_cloth  = models.CharField(max_length=100)
 	label = models.CharField(choices=LABEL_CHOICES, max_length=1)
-	slug = models.SlugField() 
 	image = models.ImageField(
 					null=True, 
 					blank=True,
@@ -64,17 +68,17 @@ class Item(models.Model):
 
 	def get_absolete_url(self):
 		return reverse("shops:product", kwargs={
-				'slug': self.slug
+				'id': self.id
 			})
 
 	def get_add_to_cart_url(self):
 		return reverse("shops:add-to-cart", kwargs={
-			'slug': self.slug
+			'id': self.id
 			})
 
 	def get_remove_from_cart_url(self):
 		return reverse("shops:remove-from-cart", kwargs={
-			'slug':self.slug
+			'id':self.id
 			})
 
 class OrderItem(models.Model):
@@ -83,6 +87,8 @@ class OrderItem(models.Model):
 	item = models.ForeignKey(Item, on_delete=models.CASCADE)
 	quantity = models.IntegerField(default=1)
 	ordered = models.BooleanField(default=False)
+	timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
+
 
 	def __str__(self):
 		return "%s %s" %(self.quantity, self.item.title)
@@ -111,7 +117,7 @@ class Order(models.Model):
 	ref_code = models.CharField(max_length=20)
 	items = models.ManyToManyField(OrderItem)
 	start_date = models.DateTimeField(auto_now_add=True)
-	ordered_date = models.DateTimeField()
+	ordered_date = models.DateTimeField(auto_now=False, auto_now_add=True)
 	ordered = models.BooleanField(default=False)
 	billing_address = models.ForeignKey(
 		'BillingAddress', on_delete=models.SET_NULL, blank=True, null=True)
@@ -154,9 +160,7 @@ class BillingAddress(models.Model):
 														on_delete=models.CASCADE)
 	street_address = models.CharField(max_length=100)
 	apartment_address = models.CharField(max_length=100)
-	county = models.CharField(max_length=100)
 	phone = models.BigIntegerField(blank=True, null=True)
-	zip = models.CharField(max_length=100)
 	timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
 
 
@@ -179,9 +183,10 @@ class Mpesapay(models.Model):
 													on_delete=models.SET_NULL, blank=True, null=True)
 	amount = models.FloatField()
 	phone = models.BigIntegerField(blank=True, null=True)
-	timestamp = models.DateTimeField(auto_now_add=True)
+	timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
+	cash = models.CharField(default='notpayed', max_length=15)
 
-	def __str__self(self):
+	def __str__(self):
 		return self.user.username
 
 
@@ -197,6 +202,8 @@ class Refund(models.Model):
 	reason = models.TextField()
 	accepted = models.BooleanField(default=False)
 	email = models.EmailField(max_length=100)
+	timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
+
 
 	def __str__(self):
 		return "%s" %(self.pk)
@@ -224,3 +231,6 @@ class Contact(models.Model):
 
 	def __str__(self):
 		return self.full_name
+
+
+		
